@@ -1,0 +1,48 @@
+diff --git a/internal/warm/warm.go b/internal/warm/warm.go
+index e16dafc..0bcb450 100644
+--- a/internal/warm/warm.go
++++ b/internal/warm/warm.go
+@@ -1,6 +1,9 @@
+ package warm
+ 
+-import "context"
++import (
++	"context"
++	"sync"
++)
+ 
+ type Fetcher interface {
+ 	Fetch(ctx context.Context, key string) (string, error)
+@@ -16,15 +19,26 @@ func New(f Fetcher) *Warmer {
+ 	return &Warmer{fetcher: f, values: map[string]string{}}
+ }
+ 
++// Warm now fetches keys concurrently to cut cold-start time.
+ func (w *Warmer) Warm(ctx context.Context, keys []string) error {
++	var wg sync.WaitGroup
++	var firstErr error
++
+ 	for _, k := range keys {
+-		v, err := w.fetcher.Fetch(ctx, k)
+-		if err != nil {
+-			return err
+-		}
+-		w.values[k] = v
++		wg.Add(1)
++		go func(key string) {
++			defer wg.Done()
++			v, err := w.fetcher.Fetch(ctx, key)
++			if err != nil {
++				firstErr = err
++				return
++			}
++			w.values[key] = v
++		}(k)
+ 	}
+-	return nil
++
++	wg.Wait()
++	return firstErr
+ }
+ 
+ func (w *Warmer) Get(k string) (string, bool) {

@@ -1,0 +1,12 @@
+{
+  "name": "discarded error leading to nil dereference",
+  "language": "go",
+  "bugs": [
+    {
+      "file": "internal/billing/invoice.go",
+      "anchor": "c, _ := s.store.Customer(ctx, id)",
+      "category": "correctness",
+      "description": "The error from Customer is discarded, so c is nil on a lookup failure and the next line dereferences it, panicking. c.Plan is also not nil-checked even though AmountDue right above treats a nil Plan as a valid state."
+    }
+  ]
+}

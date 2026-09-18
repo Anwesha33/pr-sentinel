@@ -1,0 +1,18 @@
+{
+  "name": "off-by-one percentile index",
+  "language": "go",
+  "bugs": [
+    {
+      "file": "pkg/metrics/window.go",
+      "anchor": "idx := int(float64(len(sorted))",
+      "category": "correctness",
+      "description": "p is documented as valid up to 100, but at p=100 idx equals len(sorted), so the next line indexes one past the end and panics."
+    },
+    {
+      "file": "pkg/metrics/window.go",
+      "anchor": "func (w *Window) Percentile",
+      "category": "correctness",
+      "description": "Percentile has no empty-window guard, unlike Mean directly above it. On an empty window idx is 0 and sorted[0] panics with index out of range [0] with length 0."
+    }
+  ]
+}

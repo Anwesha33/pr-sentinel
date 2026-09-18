@@ -1,0 +1,18 @@
+{
+  "name": "concurrent map write race",
+  "language": "go",
+  "bugs": [
+    {
+      "file": "internal/warm/warm.go",
+      "anchor": "w.values[key] = v",
+      "category": "concurrency",
+      "description": "Every goroutine writes the shared map w.values with no mutex, which is a data race and will crash the process with 'concurrent map writes'."
+    },
+    {
+      "file": "internal/warm/warm.go",
+      "anchor": "firstErr = err",
+      "category": "concurrency",
+      "description": "firstErr is written from multiple goroutines without synchronisation — a race, and the last writer wins rather than the first error."
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+diff --git a/internal/textutil/slug.go b/internal/textutil/slug.go
+index 2b70956..31bfb2e 100644
+--- a/internal/textutil/slug.go
++++ b/internal/textutil/slug.go
+@@ -4,6 +4,12 @@ import "strings"
+ 
+ // Slug turns a title into a URL-safe slug.
+ func Slug(title string) string {
++	return SlugWithMax(title, 0)
++}
++
++// SlugWithMax is Slug with an optional maximum length. A maxLen of 0 means no
++// limit. Truncation never leaves a trailing dash.
++func SlugWithMax(title string, maxLen int) string {
+ 	lower := strings.ToLower(strings.TrimSpace(title))
+ 	var b strings.Builder
+ 	lastDash := false
+@@ -19,5 +25,9 @@ func Slug(title string) string {
+ 			}
+ 		}
+ 	}
+-	return strings.TrimSuffix(b.String(), "-")
++	out := strings.TrimSuffix(b.String(), "-")
++	if maxLen > 0 && len(out) > maxLen {
++		out = strings.TrimSuffix(out[:maxLen], "-")
++	}
++	return out
+ }

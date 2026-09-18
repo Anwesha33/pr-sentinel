@@ -1,0 +1,35 @@
+package wallet
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+)
+
+type Wallet struct{ db *sql.DB }
+
+func New(db *sql.DB) *Wallet { return &Wallet{db: db} }
+
+var ErrInsufficientFunds = errors.New("insufficient funds")
+
+func (w *Wallet) Balance(ctx context.Context, userID int64) (int64, error) {
+	var cents int64
+	err := w.db.QueryRowContext(ctx,
+		`SELECT balance_cents FROM wallets WHERE user_id = $1`, userID).Scan(&cents)
+	return cents, err
+}
+
+// Debit removes money from a wallet.
+func (w *Wallet) Debit(ctx context.Context, userID int64, amountCents int64) error {
+	current, err := w.Balance(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if current < amountCents {
+		return ErrInsufficientFunds
+	}
+	_, err = w.db.ExecContext(ctx,
+		`UPDATE wallets SET balance_cents = $1 WHERE user_id = $2`,
+		current-amountCents, userID)
+	return err
+}

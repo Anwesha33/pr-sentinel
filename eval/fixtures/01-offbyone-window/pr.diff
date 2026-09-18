@@ -1,0 +1,25 @@
+diff --git a/pkg/metrics/window.go b/pkg/metrics/window.go
+index 127e32d..20e44b2 100644
+--- a/pkg/metrics/window.go
++++ b/pkg/metrics/window.go
+@@ -1,5 +1,7 @@
+ package metrics
+ 
++import "sort"
++
+ // Window holds a fixed-size ring of recent latency samples.
+ type Window struct {
+ 	samples []float64
+@@ -27,3 +29,12 @@ func (w *Window) Mean() float64 {
+ 	}
+ 	return sum / float64(len(w.samples))
+ }
++
++// Percentile returns the p-th percentile of the window, p in [0, 100].
++func (w *Window) Percentile(p float64) float64 {
++	sorted := make([]float64, len(w.samples))
++	copy(sorted, w.samples)
++	sort.Float64s(sorted)
++	idx := int(float64(len(sorted)) * p / 100.0)
++	return sorted[idx]
++}

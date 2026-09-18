@@ -1,0 +1,18 @@
+diff --git a/internal/billing/invoice.go b/internal/billing/invoice.go
+index 178eba7..500918b 100644
+--- a/internal/billing/invoice.go
++++ b/internal/billing/invoice.go
+@@ -39,3 +39,13 @@ func (s *Service) AmountDue(ctx context.Context, id string) (int64, error) {
+ 	}
+ 	return c.Plan.CentsDue, nil
+ }
++
++// InvoiceBatch totals what a set of customers owes.
++func (s *Service) InvoiceBatch(ctx context.Context, ids []string) (int64, error) {
++	var total int64
++	for _, id := range ids {
++		c, _ := s.store.Customer(ctx, id)
++		total += c.Plan.CentsDue - c.Balance
++	}
++	return total, nil
++}

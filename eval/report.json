@@ -1,0 +1,234 @@
+{
+  "model": "gemini-3.5-flash-lite",
+  "ran_at": "2026-09-19T03:04:25.716694+05:30",
+  "line_tolerance": 3,
+  "min_confidence": 0.5,
+  "max_agent_steps": 4,
+  "fixtures": [
+    {
+      "fixture": "01-offbyone-window",
+      "name": "off-by-one percentile index",
+      "planted_defects": 2,
+      "reported_findings": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 1,
+      "missed": [
+        "pkg/metrics/window.go:34 correctness — Percentile has no empty-window guard, unlike Mean directly above it. On an empty window idx is 0 and sorted[0] panics wi…"
+      ],
+      "matched": [
+        "pkg/metrics/window.go:38 correctness (reported: Index out of bounds on percentile calculation)"
+      ],
+      "tool_calls": 2,
+      "llm_calls": 4,
+      "prompt_tokens": 7520,
+      "output_tokens": 568,
+      "cost_usd": 0.0009792000000000002,
+      "duration_ms": 5922,
+      "verdict": "request_changes",
+      "findings": [
+        {
+          "file": "pkg/metrics/window.go",
+          "line": 39,
+          "side": "RIGHT",
+          "position": 19,
+          "severity": "major",
+          "category": "correctness",
+          "title": "Index out of bounds on percentile calculation",
+          "body": "When p is 100.0, the computed index equals `len(sorted)`, which causes an index out of bounds panic when accessing `sorted[idx]`. Additionally, calling Percentile on an empty window will panic. Clamp the index or adjust the calculation to `int(float64(len(sorted)-1) * p / 100.0)` and add a guard for empty windows.",
+          "confidence": 0.99,
+          "anchored": true
+        }
+      ]
+    },
+    {
+      "fixture": "02-rows-leak",
+      "name": "unclosed rows plus SQL injection",
+      "planted_defects": 2,
+      "reported_findings": 2,
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "matched": [
+        "internal/orders/repo.go:36 resource (reported: Unclosed sql.Rows leads to connection leak)",
+        "internal/orders/repo.go:35 security (reported: SQL injection via fmt.Sprintf in query construction)"
+      ],
+      "tool_calls": 1,
+      "llm_calls": 3,
+      "prompt_tokens": 6019,
+      "output_tokens": 597,
+      "cost_usd": 0.0008407000000000001,
+      "duration_ms": 4872,
+      "verdict": "request_changes",
+      "findings": [
+        {
+          "file": "internal/orders/repo.go",
+          "line": 33,
+          "side": "RIGHT",
+          "position": 15,
+          "severity": "critical",
+          "category": "security",
+          "title": "SQL injection via fmt.Sprintf in query construction",
+          "body": "Formatting the 'state' parameter directly into the SQL string via fmt.Sprintf allows SQL injection. Use parameterized queries instead: r.db.QueryContext(ctx, `SELECT id, user_id, total, state FROM orders WHERE user_id = $1 AND state = $2`, userID, state).",
+          "confidence": 1,
+          "anchored": true
+        },
+        {
+          "file": "internal/orders/repo.go",
+          "line": 36,
+          "side": "RIGHT",
+          "position": 18,
+          "severity": "major",
+          "category": "resource",
+          "title": "Unclosed sql.Rows leads to connection leak",
+          "body": "The rows object returned by QueryContext is never closed. Add 'defer rows.Close()' immediately after checking for errors from QueryContext to prevent database connection leaks.",
+          "confidence": 1,
+          "anchored": true
+        }
+      ]
+    },
+    {
+      "fixture": "03-map-race",
+      "name": "concurrent map write race",
+      "planted_defects": 2,
+      "reported_findings": 2,
+      "true_positives": 2,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "matched": [
+        "internal/warm/warm.go:36 concurrency (reported: Concurrent map write race on w.values)",
+        "internal/warm/warm.go:33 concurrency (reported: Data race on shared error variable firstErr)"
+      ],
+      "tool_calls": 1,
+      "llm_calls": 3,
+      "prompt_tokens": 5940,
+      "output_tokens": 583,
+      "cost_usd": 0.0008272,
+      "duration_ms": 5173,
+      "verdict": "request_changes",
+      "findings": [
+        {
+          "file": "internal/warm/warm.go",
+          "line": 36,
+          "side": "RIGHT",
+          "position": 34,
+          "severity": "critical",
+          "category": "concurrency",
+          "title": "Concurrent map write race on w.values",
+          "body": "Multiple goroutines spawned in the loop concurrently write to w.values[key] without synchronization. Go maps are not safe for concurrent writes and will race or panic. Protect map access with a sync.Mutex or sync.RWMutex.",
+          "confidence": 1,
+          "anchored": true
+        },
+        {
+          "file": "internal/warm/warm.go",
+          "line": 33,
+          "side": "RIGHT",
+          "position": 31,
+          "severity": "major",
+          "category": "concurrency",
+          "title": "Data race on shared error variable firstErr",
+          "body": "Multiple goroutines can assign to firstErr concurrently when fetches fail without synchronization. Protect writes to firstErr using a mutex or an atomic mechanism.",
+          "confidence": 1,
+          "anchored": true
+        }
+      ]
+    },
+    {
+      "fixture": "04-nil-deref",
+      "name": "discarded error leading to nil dereference",
+      "planted_defects": 1,
+      "reported_findings": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "matched": [
+        "internal/billing/invoice.go:47 correctness (reported: Discarded error and missing nil check causes panic)"
+      ],
+      "tool_calls": 1,
+      "llm_calls": 3,
+      "prompt_tokens": 4845,
+      "output_tokens": 423,
+      "cost_usd": 0.0006537000000000001,
+      "duration_ms": 4193,
+      "verdict": "request_changes",
+      "findings": [
+        {
+          "file": "internal/billing/invoice.go",
+          "line": 47,
+          "side": "RIGHT",
+          "position": 9,
+          "severity": "critical",
+          "category": "correctness",
+          "title": "Discarded error and missing nil check causes panic",
+          "body": "On line 47, the error from s.store.Customer is discarded, and on line 48, fields are accessed on `c` without checking if `c` is nil or if `err` occurred. This will result in a nil pointer dereference panic if a customer is not found. Check `err` and verify `c != nil` before accessing `c.Plan`.",
+          "confidence": 0.99,
+          "anchored": true
+        }
+      ]
+    },
+    {
+      "fixture": "05-lost-update",
+      "name": "read-modify-write lost update",
+      "planted_defects": 1,
+      "reported_findings": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "matched": [
+        "internal/wallet/wallet.go:24 data-integrity (reported: Read-modify-write race condition causes lost updates)"
+      ],
+      "tool_calls": 2,
+      "llm_calls": 4,
+      "prompt_tokens": 7518,
+      "output_tokens": 501,
+      "cost_usd": 0.0009522,
+      "duration_ms": 70454,
+      "verdict": "request_changes",
+      "findings": [
+        {
+          "file": "internal/wallet/wallet.go",
+          "line": 24,
+          "side": "RIGHT",
+          "position": 22,
+          "severity": "critical",
+          "category": "data-integrity",
+          "title": "Read-modify-write race condition causes lost updates",
+          "body": "Reading the balance on line 24 and updating it on line 31 outside of a transaction or atomic update allows concurrent calls to overwrite each other's changes. Instead, perform the debit atomically in SQL (e.g., UPDATE wallets SET balance_cents = balance_cents - $1 WHERE user_id = $2 AND balance_cents \u003e= $1) or wrap the check-and-update in a database transaction with a row lock.",
+          "confidence": 0.99,
+          "anchored": true
+        }
+      ]
+    },
+    {
+      "fixture": "06-clean-refactor",
+      "name": "clean refactor (false-positive control)",
+      "planted_defects": 0,
+      "reported_findings": 0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "tool_calls": 4,
+      "llm_calls": 6,
+      "prompt_tokens": 11609,
+      "output_tokens": 268,
+      "cost_usd": 0.0012681,
+      "duration_ms": 7699,
+      "verdict": "approve",
+      "findings": null
+    }
+  ],
+  "totals": {
+    "planted_defects": 8,
+    "true_positives": 7,
+    "false_positives": 0,
+    "false_negatives": 1,
+    "precision": 1,
+    "recall": 0.875,
+    "f1": 0.9333333333333333,
+    "clean_fixture_false_positives": 0,
+    "total_cost_usd": 0.005521100000000001,
+    "mean_cost_per_review_usd": 0.0009201833333333335,
+    "mean_duration_ms": 16385,
+    "mean_tool_calls": 1.8333333333333333
+  }
+}

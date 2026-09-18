@@ -1,0 +1,12 @@
+{
+  "name": "read-modify-write lost update",
+  "language": "go",
+  "bugs": [
+    {
+      "file": "internal/wallet/wallet.go",
+      "anchor": "current, err := w.Balance(ctx, userID)",
+      "category": "data-integrity",
+      "description": "Debit reads the balance and writes back an absolute value in a separate statement with no transaction, no row lock and no conditional update. Two concurrent debits both pass the funds check and the second overwrites the first, so money is lost. The fix is a single conditional UPDATE (balance_cents = balance_cents - $1 WHERE balance_cents >= $1) or SELECT FOR UPDATE inside a transaction."
+    }
+  ]
+}

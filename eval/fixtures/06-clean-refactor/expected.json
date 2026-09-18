@@ -1,0 +1,6 @@
+{
+  "name": "clean refactor (false-positive control)",
+  "language": "go",
+  "bugs": [],
+  "note": "This pull request is correct. It exists to measure how often the reviewer invents defects in clean code, which is the failure mode that gets a review bot muted."
+}

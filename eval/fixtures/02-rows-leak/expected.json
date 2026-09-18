@@ -1,0 +1,18 @@
+{
+  "name": "unclosed rows plus SQL injection",
+  "language": "go",
+  "bugs": [
+    {
+      "file": "internal/orders/repo.go",
+      "anchor": "rows, err := r.db.QueryContext(ctx, query)",
+      "category": "resource",
+      "description": "rows is never closed — no defer rows.Close() and an early return inside the loop — so the connection leaks on every call and on every scan error. rows.Err() is also never checked, so a mid-iteration failure is silently reported as success."
+    },
+    {
+      "file": "internal/orders/repo.go",
+      "anchor": "userID, state)",
+      "category": "security",
+      "description": "state is interpolated into the SQL string with fmt.Sprintf, which is SQL injection; it must be a bound parameter."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+diff --git a/internal/orders/repo.go b/internal/orders/repo.go
+index 40945f2..c016350 100644
+--- a/internal/orders/repo.go
++++ b/internal/orders/repo.go
+@@ -3,6 +3,7 @@ package orders
+ import (
+ 	"context"
+ 	"database/sql"
++	"fmt"
+ )
+ 
+ type Repo struct{ db *sql.DB }
+@@ -26,3 +27,24 @@ func (r *Repo) Get(ctx context.Context, id int64) (*Order, error) {
+ 	}
+ 	return &o, nil
+ }
++
++// ListByState returns every order in a given state for a user.
++func (r *Repo) ListByState(ctx context.Context, userID int64, state string) ([]Order, error) {
++	query := fmt.Sprintf(
++		`SELECT id, user_id, total, state FROM orders WHERE user_id = %d AND state = '%s'`,
++		userID, state)
++	rows, err := r.db.QueryContext(ctx, query)
++	if err != nil {
++		return nil, err
++	}
++
++	var out []Order
++	for rows.Next() {
++		var o Order
++		if err := rows.Scan(&o.ID, &o.UserID, &o.Total, &o.State); err != nil {
++			return nil, err
++		}
++		out = append(out, o)
++	}
++	return out, nil
++}
