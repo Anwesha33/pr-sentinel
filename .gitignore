@@ -1,0 +1,18 @@
+/bin/
+*.test
+.env
+.DS_Store
+
+# The command runner deliberately points the toolchain's caches inside the
+# workspace it is analysing (GOCACHE/GOMODCACHE/HOME all land under the
+# workspace root) so a review never writes to the operator's home directory.
+# For the evaluation fixtures, whose "workspace" is a directory in this
+# repository, that means build caches appear under eval/fixtures/*/head/.
+.cache/
+eval/fixtures/*/head/.cache/
+eval/fixtures/*/head/eval/
+
+# HOME is pointed inside the workspace under review, so tools that write to the
+# home directory (Go telemetry, for one) would otherwise leave files in the
+# fixtures. The runner disables what it can; this catches the rest.
+eval/fixtures/*/head/Library/
