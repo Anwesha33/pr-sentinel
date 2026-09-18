@@ -2,7 +2,7 @@
 # toolchain (to run `go vet` / `go test` against Go repositories), so the
 # runtime image is not scratch. That is a deliberate trade: a 15MB image that
 # cannot run the code it is reviewing is useless here.
-FROM golang:1.25-alpine AS build
+FROM golang:1.24-alpine AS build
 
 WORKDIR /src
 RUN apk add --no-cache git
@@ -15,7 +15,7 @@ COPY . .
 ARG TARGET=api
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/app ./cmd/${TARGET}
 
-FROM golang:1.25-alpine AS runtime
+FROM golang:1.24-alpine AS runtime
 
 RUN apk add --no-cache git ca-certificates tini \
  && adduser -D -u 10001 sentinel
