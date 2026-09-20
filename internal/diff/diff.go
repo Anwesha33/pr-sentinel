@@ -109,9 +109,10 @@ func (f *File) AddedLines() []Anchor {
 
 // NearestAddedLine snaps an arbitrary line number to the closest line the PR
 // actually touched in this file. The LLM routinely reports a line that is one
-// or two off (it reasons about the file, not the diff), and silently dropping
-// those findings was measurably worse than snapping them: see
-// docs/INTERVIEW-GUIDE.md, "the off-by-one finding problem".
+// or two off, because it reasons about the file while GitHub only accepts a
+// comment on a line that is part of the diff. Dropping those findings loses
+// real defects over a coordinate error, so within a small tolerance they are
+// snapped instead; see docs/RESULTS.md for what that is worth in practice.
 //
 // tolerance caps how far we are willing to move a finding. Beyond that the
 // finding is reported at file level instead of inline.
