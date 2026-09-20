@@ -152,4 +152,3 @@ docs/            Architecture, results, and the interview guide
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — why the pieces are shaped this way
 - [docs/RESULTS.md](docs/RESULTS.md) — measured precision, recall, cost, latency
-- [docs/INTERVIEW-GUIDE.md](docs/INTERVIEW-GUIDE.md) — design decisions, trade-offs, and the bugs found while building it
